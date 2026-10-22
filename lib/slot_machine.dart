@@ -50,7 +50,7 @@ class _SlotMachineState extends State<SlotMachine> {
 
   Future<void> _spin() async {
     if (_coins <= 0 || _isSpinning) return;
-    SoundService.playClick();
+    await SoundService.playClick();
     setState(() {
       _isSpinning = true;
       _message = "";
@@ -72,23 +72,28 @@ class _SlotMachineState extends State<SlotMachine> {
       onTick: (val) => setState(() => _slot3 = val),
     );
     await Future.delayed(Duration(milliseconds: 300));
-    setState(() {
-      _isSpinning = false;
-      if (result1 == result2 && result2 == result3) {
-        if (result1 == "assets/images/seven.png") {
-          _coins += 10;
-          _message = "ДЖЕКПОТ! +10 МОНЕТ";
-          SoundService.playJackpot();
-        } else {
-          _coins += 3;
-          _message = "Победа! +3 монеты";
-          SoundService.playWin();
-        }
+    String newMessage;
+    int coinsChange;
+    if (result1 == result2 && result2 == result3){
+      if (result1 == "assets/images/seven.png"){
+        coinsChange = 10;
+        newMessage = "ДЖЕКПОТ! +10 МОНЕТ";
+        await SoundService.playJackpot();
       } else {
-        _coins -= 1;
-        _message = "Попробуй еще раз ... -1 монета";
-        SoundService.playLose();
+        coinsChange = 3;
+        newMessage = "Победа! +3 монеты";
+        await SoundService.playWin();
       }
+    } else {
+      coinsChange = -1;
+      newMessage = "Попробуй еще раз ... -1 монета";
+      await SoundService.playLose();
+    }
+
+    setState((){
+      _isSpinning = false;
+      _coins += coinsChange;
+      _message = newMessage;
     });
   }
 
